@@ -3,7 +3,6 @@ use strict;
 use warnings;
 
 use Business::OnlinePayment;
-use Business::OnlinePayment::HTTPS;
 use vars qw(@ISA $me $DEBUG $VERSION);
 use HTTP::Tiny;
 use XML::Writer;

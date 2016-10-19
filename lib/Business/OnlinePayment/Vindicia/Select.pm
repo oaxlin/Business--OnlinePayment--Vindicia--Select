@@ -382,8 +382,12 @@ sub refundTransactions {
     # TODO, do we even care to send more than one?
 
     my $ret = $self->_call_soap('refundTransactions', 'refunds', \@refunds);
-    $self->is_success($ret->{'transaction'} ? 1 : 0);
+    $self->is_success($ret->{'response'} ? 1 : 0);
     $self->order_number($ret->{'return'}->{'soapId'});
+
+    # make everyone's life easier my making sure this is always an array
+    $ret->{'response'} = [$ret->{'response'}] if exists $ret->{'response'} && ref $ret->{'response'} ne 'ARRAY';
+
     $ret;
 }
 

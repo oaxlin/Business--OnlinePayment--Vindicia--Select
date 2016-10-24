@@ -97,7 +97,7 @@ SKIP: {
             skip "Not a hash", 1 unless exists $ret->{'transactions'}; # don't fail, it's very possible they never did a transaction during this time
             ok($ret->{'transactions'}->[0]->{'selectTransactionId'},"Transaction contained a selectTransactionId");
         }
-    } or diag explain $client->server_request,$client->server_response;
+    } or diag explain $client->server_request,$client->server_response,$ret;
 }
 
 SKIP: {
@@ -109,7 +109,7 @@ SKIP: {
         ok($client->is_success, 'fetchByMerchantTransactionId successful');
         ok($client->order_number, 'fetchByMerchantTransactionId lookup soapId recorded');
         ok($ret->{'transaction'}->{$_},"Transaction has a $_") foreach qw{customerId subscriptionId status merchantTransactionId amount currency authCode};
-    } or diag explain $client->server_request,$client->server_response;
+    } or diag explain $client->server_request,$client->server_response,$ret;
 }
 
 SKIP: {
@@ -120,9 +120,8 @@ SKIP: {
         plan tests => 3;
         ok($client->is_success, 'refundTransactions successful');
         ok($client->order_number, 'refundTransactions lookup soapId recorded');
-        # TODO, need to verify the refund worked.  But currently the SOAP call is not functioning as expected
-        # will continue this test once I get a response from Vindicia support
-    } or diag explain $client->server_request,$client->server_response;
+        ok(!$ret->{'response'},'refundTransactions lookup did not return any errors (sadly this test is terrible because Vindicia does not do a good job on what it considers an "error")');
+    } or diag explain $client->server_request,$client->server_response,$ret;
 }
 
 SKIP: { skip 'SEL-004 is not needed, if someone requests it we can add it later', 1; }

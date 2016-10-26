@@ -137,7 +137,25 @@ The following actions are valid
 
 =head1 TESTING
 
-In order to run the provided test suite, you will first need to apply and get your account setup with Vindicia.  Then you can use the test account information they give you to run the test suite. The scripts will look for three environment variables to connect: BOP_USERNAME, BOP_PASSWORD, BOP_MERCHANTID
+The test suite runs using mocked data results.
+All tests are run using MOCKED return values.
+If you wish to run REAL tests then add these ENV variables.
+
+ export PERL_BUSINESS_VINDICIA_USERNAME=your_test_user
+ export PERL_BUSINESS_VINDICIA_PASSWORD=your_test_password
+
+If you would like to create your own tests, or mock your own responses you can do the following
+
+  use Business::OnlinePayment;
+  my $tx = Business::OnlinePayment->new(
+     "Vindicia::Select",
+     default_Origin => 'NEW', # or RECURRING
+  );
+  push @{$client->{'mocked'}}, {
+     action => 'billTransactions', # must match the action you call, or the script will die
+     login => 'mocked', # must match the login credentials used, or the script will die
+     resp => 'ok_duplicate', # or you can return a HASH of the actual data you want to mock
+  };
 
 =head1 FUNCTIONS
 

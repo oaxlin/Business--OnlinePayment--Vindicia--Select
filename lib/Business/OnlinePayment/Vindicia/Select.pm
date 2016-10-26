@@ -268,7 +268,7 @@ sub billTransactions {
     }
 
     my $ret = $self->_call_soap('billTransactions', 'transactions', $transactions);
-    $self->is_success($ret->{'return'}->{'returnString'} eq 'OK' ? 1 : 0);
+    $self->is_success($ret->{'return'}->{'returnString'} && $ret->{'return'}->{'returnString'} eq 'OK' ? 1 : 0);
     $self->order_number($ret->{'return'}->{'soapId'});
 
     # make everyone's life easier my making sure this is always an array
@@ -324,7 +324,7 @@ sub fetchBillingResults {
         'page',        ($content{'page'}//0),
         'pageSize',    ($content{'page_size'}//100),
     );
-    $self->is_success($ret->{'return'}->{'returnString'} eq 'OK' ? 1 : 0);
+    $self->is_success($ret->{'return'}->{'returnString'} && $ret->{'return'}->{'returnString'} eq 'OK' ? 1 : 0);
     $self->order_number($ret->{'return'}->{'soapId'});
 
     # make everyone's life easier my making sure this is always an array
@@ -383,7 +383,7 @@ sub refundTransactions {
     # TODO, do we even care to send more than one?
 
     my $ret = $self->_call_soap('refundTransactions', 'refunds', \@refunds);
-    $self->is_success($ret->{'return'}->{'returnString'} eq 'OK' ? 1 : 0);
+    $self->is_success($ret->{'return'}->{'returnString'} && $ret->{'return'}->{'returnString'} eq 'OK' ? 1 : 0);
     $self->order_number($ret->{'return'}->{'soapId'});
 
     # make everyone's life easier my making sure this is always an array

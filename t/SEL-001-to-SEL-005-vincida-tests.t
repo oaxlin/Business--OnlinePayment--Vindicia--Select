@@ -8,8 +8,21 @@ use Test::More tests => 7;
 use Module::Runtime qw( use_module );
 use Time::HiRes;
 
-my $username = $ENV{PERL_BUSINESS_VINDICIA_USERNAME};
-my $password = $ENV{PERL_BUSINESS_VINDICIA_PASSWORD};
+my $username = $ENV{PERL_BUSINESS_VINDICIA_USERNAME} || 'mocked';
+my $password = $ENV{PERL_BUSINESS_VINDICIA_PASSWORD} || 'mocked';
+
+if ($username eq 'mocked') {
+    diag '';
+    diag '';
+    diag '';
+    diag 'All tests are run using MOCKED return values.';
+    diag 'If you wish to run REAL tests then add these ENV variables.';
+    diag '';
+    diag 'export PERL_BUSINESS_VINDICIA_USERNAME=your_test_user';
+    diag 'export PERL_BUSINESS_VINDICIA_PASSWORD=your_test_password';
+    diag '';
+    diag '';
+}
 
 plan skip_all => 'No credentials set in the environment.'
   . ' Set PERL_BUSINESS_VINDICIA_USERNAME and '
@@ -58,6 +71,11 @@ SKIP: { # SEL-001
     local $data->{'action'} = 'billTransactions';
     local $data->{'transactions'} = $trans;
     $client->content(%$data);
+    push @{$client->{'mocked'}}, {
+        action => 'billTransactions',
+        login => 'mocked',
+        resp => 'ok_duplicate',
+    } if $data->{'login'} eq 'mocked';
     my $ret = $client->submit();
     subtest 'SEL-001 billTransactions soapId: '.($client->order_number // 'NONE') => sub {
         plan tests => 3;
@@ -83,6 +101,11 @@ SKIP: {
         page            => 0,
         page_size       => 2,
     };
+    push @{$client->{'mocked'}}, {
+        action => 'fetchBillingResults',
+        login => 'mocked',
+        resp => 'ok',
+    } if $data->{'login'} eq 'mocked';
     $client->content(%$data2);
     my $ret = $client->submit();
     subtest 'SEL-002 (a) fetchBillingResults soapId: '.($client->order_number // 'NONE') => sub {
@@ -102,6 +125,11 @@ SKIP: {
 
 SKIP: {
     local $data->{'action'} = 'fetchByMerchantTransactionId';
+    push @{$client->{'mocked'}}, {
+        action => 'fetchByMerchantTransactionId',
+        login => 'mocked',
+        resp => 'ok',
+    } if $data->{'login'} eq 'mocked';
     $client->content(%$data);
     my $ret = $client->submit();
     subtest 'SEL-002 (b) fetchByMerchantTransactionId soapId: '.($client->order_number // 'NONE') => sub {
@@ -114,6 +142,11 @@ SKIP: {
 
 SKIP: {
     local $data->{'action'} = 'refundTransactions';
+    push @{$client->{'mocked'}}, {
+        action => 'refundTransactions',
+        login => 'mocked',
+        resp => 'ok',
+    } if $data->{'login'} eq 'mocked';
     $client->content(%$data);
     my $ret = $client->submit();
     subtest 'SEL-003 refundTransactions soapId: '.($client->order_number // 'NONE') => sub {

@@ -399,6 +399,7 @@ sub _call_soap {
     my $action = shift;
     my @pairs = @_;
     my %content = $self->content();
+
     my $post_data;
     my $writer = new XML::Writer(
         OUTPUT      => \$post_data,
@@ -433,6 +434,15 @@ sub _call_soap {
     $writer->end();
 
     $self->server_request( $post_data );
+
+    if (ref $self->{'mocked'} eq 'ARRAY' && scalar @{$self->{'mocked'}}) {
+        my $mock = shift @{$self->{'mocked'}};
+        die "Unexpected mock action" unless $mock->{'action'} eq $action;
+        die "Unexpected mock login" unless $mock->{'login'} eq $content{'login'};
+        my $resp = ((ref $mock->{'resp'}) ? $mock->{'resp'} : $self->_common_mock($action,$mock->{'resp'}));
+        $self->server_response( "MOCKED\n\n".Dumper $resp );
+        return $resp;
+    }
 
     my $url = 'https://'.$self->server.'/'.$self->path;
     my $verify_ssl = 1;
@@ -560,6 +570,85 @@ sub _xmlwrite {
         $writer->characters($value);
         $writer->endTag($item);
     }
+}
+
+our $common_mock = {
+    billTransactions => {
+        ok => {
+              'return' => {
+                            'returnString' => 'OK',
+                            'returnCode' => '200',
+                            'soapId' => '75e2b24817abcba350f9bded7024a44d9e03b42b',
+                          },
+        },
+        ok_duplicate => {
+              'return' => {
+                            'returnString' => 'OK',
+                            'returnCode' => '200',
+                            'soapId' => '75e2b24817abcba350f9bded7024a44d9e03b42b',
+                          },
+              'response' => [
+                              {
+                                'code' => '400',
+                                'merchantTransactionId' => 'TEST-1477512979.48453-3',
+                                'description' => 'Billing has already been attempted for Transaction ID TEST-1477512979.48453-3'
+                              },
+                            ],
+        },
+    },
+    fetchBillingResults => {
+        ok => {
+              'return' => {
+                            'returnString' => 'OK',
+                            'returnCode' => '200',
+                            'soapId' => '75e2b24817abcba350f9bded7024a44d9e03b42b',
+                          },
+        },
+    },
+    refundTransactions => {
+        ok => {
+              'return' => {
+                            'returnString' => 'OK',
+                            'returnCode' => '200',
+                            'soapId' => '75e2b24817abcba350f9bded7024a44d9e03b42b',
+                          },
+        },
+    },
+    fetchByMerchantTransactionId => {
+        ok => {
+          'return' => {
+                        'returnCode' => '200',
+                        'returnString' => 'OK',
+                        'soapId' => '141d55727eca030a16ddad54e4eaf8088a5fa322'
+                      },
+          'transaction' => {
+                           'currency' => 'USD',
+                           'authCode' => '123456',
+                           'selectTransactionId' => 'TEST-1477513825.95777',
+                           'amount' => '9000',
+                           'subscriptionId' => 'TEST-1477513825.95775',
+                           'paymentMethodIsTokenized' => '0',
+                           'creditCardAccountHash' => '68bfb396f35af3876fc509665b3dc23a0930aab1',
+                           'nameValues' => {
+                                           'vin:BillingCycle' => '0',
+                                           'vin:RetryNumber' => '0'
+                                         },
+                           'paymentMethodId' => '1',
+                           'divisionNumber' => '1',
+                           'subscriptionStartDate' => '2016-10-26T13:30:26-07:00',
+                           'creditCardAccount' => '411111XXXXXX1111',
+                           'status' => 'Failed',
+                           'VID' => '3ccefe5286ba2a8199a651d9f7afbee9a015fbb2',
+                           'customerId' => '123',
+                           'timestamp' => '2012-09-11T15:34:32-07:00',
+                           'merchantTransactionId' => 'TEST-1477513825.95777'
+                         }
+        },
+    },
+};
+sub _common_mock {
+    my ($self,$action,$label) = @_;
+    return $common_mock->{$action}->{$label} || die 'Mock label not found, label: '.$label."\n";
 }
 
 1;

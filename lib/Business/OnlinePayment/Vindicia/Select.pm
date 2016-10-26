@@ -212,10 +212,8 @@ sub test_transaction {
     $self->path('v1.1/soap.pl'); #https://soap.prodtest.sj.vindicia.com/v1.1/soap.pl
     if (lc($testMode) eq 'sandbox' || lc($testMode) eq 'test' || $testMode eq '1') {
         $self->server('soap.prodtest.sj.vindicia.com');
-        $self->SUPER::test_transaction(1);
     } else {
         $self->server('soap.vindicia.com');
-        $self->SUPER::test_transaction(0);
     }
 }
 

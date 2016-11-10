@@ -47,6 +47,10 @@ This is a plugin for the Business::OnlinePayment interface.  Please refer to tha
       expiration     => '09/02',
       cvv2           => '1234', #optional
       invoice_number => '54123',
+      vindicia_nvp   => {
+        custom => 'data',
+        goes   => 'here',
+      },
   );
   $tx->submit();
 

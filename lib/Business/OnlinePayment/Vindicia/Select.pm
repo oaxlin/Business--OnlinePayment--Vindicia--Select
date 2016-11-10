@@ -14,7 +14,7 @@ use Log::Scrubber qw(disable $SCRUBBER scrubber :Carp scrubber_add_scrubber);
 @ISA     = qw(Business::OnlinePayment);
 $me      = 'Business::OnlinePayment::Vindicia::Select';
 $DEBUG   = 0;
-$VERSION = '0.001';
+$VERSION = '0.002';
 
 =head1 NAME
 

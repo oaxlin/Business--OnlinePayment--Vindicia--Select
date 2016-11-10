@@ -57,6 +57,9 @@ my $data = {
  card_number         => '4111111111111111',
  card_token          => '1',
  expiration          => '12/25',
+ vindicia_nvp        => {
+     custom_test => 'BOP:Vindica:Select unit test',
+ }
 };
 my $trans;
 foreach my $n ( 1 .. 3, 3 ) { # we do "3" twice to test what an error message looks like

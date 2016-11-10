@@ -311,6 +311,13 @@ sub _add_trans {
         currency                 => $content->{'currency'} || 'USD',
         creditCardAccount        => $content->{'card_number'},
     };
+    if ($content->{'vindicia_nvp'} && ref $content->{'vindicia_nvp'} eq 'HASH') {
+        # A common vindica_nvp would be "vin:Divison"
+        push @{$trans->{'nameValues'}}, {
+            name => $_,
+            value => $content->{'vindicia_nvp'}->{$_},
+        } foreach grep { !ref $content->{'vindicia_nvp'}->{$_} or die "Invalid vindicia_nvp format" } keys %{$content->{'vindicia_nvp'}};
+    }
     push @$transactions, $trans;
 };
 

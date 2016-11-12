@@ -531,7 +531,7 @@ sub _resp_simplify_hash {
                 }
             }
             $resp->{$t} = $hash;
-        } elsif (ref $resp->{$t} eq 'HASH' && exists $resp->{$t}->{'content'}) {
+        } elsif (ref $resp->{$t} eq 'HASH' && (exists $resp->{$t}->{'content'} || exists $resp->{$t}->{'xmlns'})) {
             $resp->{$t} = $resp->{$t}->{'content'};
         }
     }

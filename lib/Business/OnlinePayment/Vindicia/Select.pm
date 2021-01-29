@@ -15,7 +15,7 @@ use Log::Scrubber qw(disable $SCRUBBER scrubber :Carp scrubber_add_scrubber);
 
 $me      = 'Business::OnlinePayment::Vindicia::Select';
 $DEBUG   = 0;
-$VERSION = '0.002';
+$VERSION = '0.003';
 
 =head1 NAME
 

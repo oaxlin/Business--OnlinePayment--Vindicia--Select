@@ -22,7 +22,7 @@ Business::OnlinePayment::Vindicia::Select - Backend for Business::OnlinePayment
 
 =head1 SYNOPSIS
 
-This is a plugin for the Business::OnlinePayment interface.  Please refer to that docuementation for general usage.
+This is a plugin for the Business::OnlinePayment interface.  Please refer to that documentation for general usage.
 
   use Business::OnlinePayment;
   my $tx = Business::OnlinePayment->new(
@@ -53,6 +53,10 @@ This is a plugin for the Business::OnlinePayment interface.  Please refer to tha
       },
   );
   $tx->submit();
+
+=head1 DESCRIPTION
+
+Used via L<Business::OnlinePayment> for processing payments through the Vindicia processor.
 
 =head1 METHODS AND FUNCTIONS
 
@@ -262,7 +266,7 @@ sub submit {
 
 =head2 billTransactions
 
-Send a batch of transactions to vindica for collection
+Send a batch of transactions to Vindicia for collection
 
 is_success means the call was successful, it does NOT mean all of your transactions were accepted
 In order to verify your transaction you need to look at result->{'response'} for an ARRAY of potential
@@ -322,7 +326,7 @@ sub _add_trans {
             value => $content->{'vindicia_nvp'}->{$_},
         } foreach grep { !ref $content->{'vindicia_nvp'}->{$_} or die "Invalid vindicia_nvp format" } keys %{$content->{'vindicia_nvp'}};
     }
-    push @$transactions, $trans;
+    push @{$transactions}, $trans;
 };
 
 =head2 fetchBillingResults
@@ -424,13 +428,11 @@ sub refundTransactions {
 }
 
 sub _call_soap {
-    my $self = shift;
-    my $action = shift;
-    my @pairs = @_;
+    my ($self, $action, @pairs) = @_;
     my %content = $self->content();
 
     my $post_data;
-    my $writer = new XML::Writer(
+    my $writer = XML::Writer->new(
         OUTPUT      => \$post_data,
         DATA_MODE   => 1,
         DATA_INDENT => 2,
@@ -492,7 +494,7 @@ sub _call_soap {
 sub _resp_simplify {
     my ($self,$resp) = @_;
     delete $resp->{'xmlns'};
-    foreach my $t (keys %$resp) {
+    foreach my $t (keys %{$resp}) {
         if (ref $resp->{$t} eq 'ARRAY') {
             $resp->{$t} = $self->_resp_simplify_array($resp->{$t});
         } elsif (ref $resp->{$t} eq 'HASH') {
@@ -504,7 +506,7 @@ sub _resp_simplify {
 
 sub _resp_simplify_array {
     my ($self,$resp) = @_;
-    foreach my $value (@$resp) {
+    foreach my $value (@{$resp}) {
         $self->_resp_simplify_hash($value);
     }
     $resp;
@@ -519,7 +521,7 @@ sub _resp_simplify_hash {
             my $arr = $resp->{$t};
             $arr = [$arr] unless ref $arr eq 'ARRAY';
             my $hash = {};
-            foreach my $t2 (@$arr) {
+            foreach my $t2 (@{$arr}) {
                 my $n = $t2->{'name'}->{'content'};
                 my $v = $t2->{'value'}->{'content'};
                 if (!exists $hash->{$n}) {
@@ -571,9 +573,11 @@ sub _tx_init {
     my %content = $self->content();
     foreach my $ptr (\%content,$opts) {
         next if ! $ptr;
+        my $passkey = quotemeta($ptr->{'password'}||'');
+        my $cvv2key = $ptr->{'cvv2'} ? '(?<=[^\d])'.quotemeta($ptr->{'cvv2'}).'(?=[^\d])' : '';
         scrubber_init({
-            quotemeta($ptr->{'password'}||'')=>'DELETED',
-            ($ptr->{'cvv2'} ? '(?<=[^\d])'.quotemeta($ptr->{'cvv2'}).'(?=[^\d])' : '')=>'DELETED',
+            $passkey => 'DELETED',
+            $cvv2key => 'DELETED',
             });
         $self->_scrubber_add_card($ptr->{'card_number'});
         $self->_scrubber_add_card($ptr->{'account_number'});
@@ -585,7 +589,7 @@ sub _xmlwrite {
     if ( ref($value) eq 'HASH' ) {
         my $attr = $value->{'attr'} ? $value->{'attr'} : {};
         $writer->startTag( $item, %{$attr} );
-        foreach ( keys(%$value) ) {
+        foreach ( keys(%{$value}) ) {
             next if $_ eq 'attr';
             $self->_xmlwrite( $writer, $_, $value->{$_} );
         }

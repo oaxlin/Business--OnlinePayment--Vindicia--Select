@@ -1,17 +1,18 @@
 package Business::OnlinePayment::Vindicia::Select;
+
 use strict;
 use warnings;
 
-use Business::OnlinePayment;
-use vars qw(@ISA $me $DEBUG $VERSION);
+use base qw{Business::OnlinePayment};
+use vars qw($me $DEBUG $VERSION); ## no critic (Variables::ProhibitPackageVars)
 use HTTP::Tiny;
 use XML::Writer;
 use XML::Simple;
 use Business::CreditCard qw(cardtype);
 use Data::Dumper;
+use List::MoreUtils qw(any);
 use Log::Scrubber qw(disable $SCRUBBER scrubber :Carp scrubber_add_scrubber);
 
-@ISA     = qw(Business::OnlinePayment);
 $me      = 'Business::OnlinePayment::Vindicia::Select';
 $DEBUG   = 0;
 $VERSION = '0.002';
@@ -56,11 +57,11 @@ This is a plugin for the Business::OnlinePayment interface.  Please refer to tha
 
 =head1 DESCRIPTION
 
-Used via L<Business::OnlinePayment> for processing payments through the Vindicia processor.
+Used via Business::OnlinePayment for processing payments through the Vindicia processor.
 
 =head1 METHODS AND FUNCTIONS
 
-See L<Business::OnlinePayment> for the complete list. The following methods either override the methods in L<Business::OnlinePayment> or provide additional functions.
+See Business::OnlinePayment for the complete list. The following methods either override the methods in Business::OnlinePayment or provide additional functions.
 
 =head2 result_code
 
@@ -200,8 +201,7 @@ Used by BOP to set default values during "new"
 =cut
 
 sub set_defaults {
-    my $self = shift;
-    my %opts = @_;
+    my ($self, %opts) = @_;
 
     $self->build_subs(
         qw( order_number md5 avs_code cvv2_response card_token cavv_response failure_status verify_SSL )
@@ -248,7 +248,7 @@ sub test_transaction {
 
 =head2 submit
 
-Do a bop-ish action on vindicia
+Do a Business::OnlinePayment style action on Vindicia
 
 =cut
 
@@ -260,7 +260,7 @@ sub submit {
 
     my %content = $self->content();
     my $action = $content{'action'};
-    die 'unsupported action' unless grep { $action eq $_ } @{$self->_info()->{'supported_actions'}->{'CC'}};
+    die 'unsupported action' unless any { $action eq $_ } @{$self->_info()->{'supported_actions'}->{'CC'}};
     $self->$action();
 }
 
@@ -324,7 +324,7 @@ sub _add_trans {
         push @{$trans->{'nameValues'}}, {
             name => $_,
             value => $content->{'vindicia_nvp'}->{$_},
-        } foreach grep { !ref $content->{'vindicia_nvp'}->{$_} or die "Invalid vindicia_nvp format" } keys %{$content->{'vindicia_nvp'}};
+        } foreach grep { (!ref $content->{'vindicia_nvp'}->{$_}) or die "Invalid vindicia_nvp format" } keys %{$content->{'vindicia_nvp'}};
     }
     push @{$transactions}, $trans;
 };
@@ -368,7 +368,7 @@ sub fetchBillingResults {
 
 =head2 fetchByMerchantTransactionId
 
-Lookup a specific transaction in vindicia
+Lookup a specific transaction in Vindicia
 
   $tx->content(
       login           => 'testdrive',
@@ -605,7 +605,7 @@ sub _xmlwrite {
     }
 }
 
-our $common_mock = {
+my $common_mock = {
     billTransactions => {
         ok => {
               'return' => {
